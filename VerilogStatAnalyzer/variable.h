@@ -9,6 +9,6 @@ class Variable: public Node
 {
 public:
     std::string Name;
-    std::string Type;
-    int capacity;
+    VarType Type;
+    int Capacity;
 };

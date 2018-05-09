@@ -12,8 +12,8 @@ enum GateType
 };
 
 enum VarType {
-    VAR_INPUT,
-    VAR_OUTPUT,
-    VAR_REG,
-    VAR_WIRE
+    VAR_INPUT = 1,
+    VAR_OUTPUT = 2,
+    VAR_REG = 4,
+    VAR_WIRE = 8
 };
