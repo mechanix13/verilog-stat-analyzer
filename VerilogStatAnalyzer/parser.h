@@ -28,8 +28,9 @@ Variable* find_var(const char* name)
 }
 
 void read_declaration() {
-    VarType type;
-
+    int type;
+    
+    Declaration* decl = new Declaration;
     if (tokens[pos].item == "input")
         type = VAR_INPUT;
     if (tokens[pos].item == "output")
@@ -39,7 +40,12 @@ void read_declaration() {
     if (tokens[pos].item == "wire")
         type = VAR_WIRE;
 
+    decl->Type = type;
     pos++;
+
+    decl->VarName = tokens[pos].item;
+    Operators.push_back(decl);
+
     Variable* var = find_var(tokens[pos].item.c_str());
     if (var == NULL)
     {
@@ -48,8 +54,23 @@ void read_declaration() {
         var->Type = 0;
         Vars.push_back(var);
     }
+    
+    if (var->Type < 0)
+        var->Type = 0;
 
     var->Type |= type;
+    pos++;
+    if (tokens[pos].item == "[")
+    {
+        pos++;
+        int left_border = atoi(tokens[pos].item.c_str());
+        pos += 3;
+        int right_border = atoi(tokens[pos].item.c_str());
+        decl->Capacity = left_border > right_border ? left_border : right_border;
+        var->Capacity = decl->Capacity
+        pos += 2; // skip square brace
+    }
+
     pos++; // skip semicolon at the end of declaration
 }
 
@@ -78,7 +99,6 @@ void read_module() {
                 continue;
             }
 
-            // todo: add capacity
             var_buffer = new Variable();
             var_buffer->Name = tokens[pos].item;
             Vars.push_back(var_buffer);

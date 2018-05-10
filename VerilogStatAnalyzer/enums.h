@@ -11,9 +11,8 @@ enum GateType
     GATE_XNOR
 };
 
-enum VarType {
-    VAR_INPUT = 1,
-    VAR_OUTPUT = 2,
-    VAR_REG = 4,
-    VAR_WIRE = 8
-};
+// variable type definitions
+const unsigned int VAR_INPUT = 1;
+const unsigned int VAR_OUTPUT = 2;
+const unsigned int VAR_REG = 4;
+const unsigned int VAR_WIRE = 8;

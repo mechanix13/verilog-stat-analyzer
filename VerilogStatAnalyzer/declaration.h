@@ -6,6 +6,7 @@
 class Declaration: public Node
 {
 public:
-    VarType Type;
-    std::string Name;
+    int Type;
+    int Capacity;
+    std::string VarName;
 };
