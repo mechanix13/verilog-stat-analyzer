@@ -180,6 +180,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\constant.h"
+				>
+			</File>
+			<File
 				RelativePath=".\declaration.h"
 				>
 			</File>

@@ -8,7 +8,11 @@
 #include "declaration.h"
 #include "enums.h"
 #include "gate.h"
+#include "constant.h"
 #include "module.h"
+
+bool checkUnusedVars = true;
+bool checkBitCapacityMismathc = false;
 
 std::vector<token> tokens;
 std::vector<Node*> Operators;
@@ -67,19 +71,92 @@ void read_declaration() {
         pos += 3;
         int right_border = atoi(tokens[pos].item.c_str());
         decl->Capacity = left_border > right_border ? left_border : right_border;
-        var->Capacity = decl->Capacity
+        var->Capacity = decl->Capacity;
         pos += 2; // skip square brace
     }
 
     pos++; // skip semicolon at the end of declaration
 }
 
-void read_assign() {}
-void read_gate() {}
+// Important: still doesn't read operations on right hand side
+void read_assign()
+{
+    if (tokens[pos].item == "assign")
+    {
+        pos++; // skip assign word
+    }
+
+    Assign* operation = new Assign();
+    Constant* constValue = new Constant();
+    operation->LHS = find_var(tokens[pos].item.c_str());
+    pos += 2; // move to right hand side
+    if (find_var(tokens[pos].item.c_str()) == NULL) // constant, not variable
+    {
+        constValue->Value = atoi(tokens[pos].item.c_str());
+        Vars.push_back(constValue);
+        operation->RHS = constValue;
+    }
+    else
+    {
+        operation->RHS = find_var(tokens[pos].item.c_str());
+    }
+
+    Operators.push_back(operation);
+
+    pos += 2; // skip behind semicolon
+}
+
+void read_gate()
+{
+    GateType type;
+
+    if (tokens[pos].item == "not")
+        type = GATE_NOT;
+    if (tokens[pos].item == "nand")
+        type = GATE_NAND;
+    if (tokens[pos].item == "and")
+        type = GATE_AND;
+    if (tokens[pos].item == "nor")
+        type = GATE_NOR;
+    if (tokens[pos].item == "or")
+        type = GATE_OR;
+    if (tokens[pos].item == "xor")
+        type = GATE_XOR;
+    if (tokens[pos].item == "xnor")
+        type = GATE_XNOR;
+
+    Gate* gate = new Gate();
+    gate->Type = type;
+    pos++;
+
+    gate->Name = tokens[pos].item;
+    pos += 2;
+
+    gate->OutVar = find_var(tokens[pos].item.c_str());
+    pos++;
+
+    do
+    {
+        if (tokens[pos].item == ",")
+        {
+            pos++;
+            continue;
+        }
+
+        gate->InVars.push_back(find_var(tokens[pos].item.c_str()));
+        pos++;
+    } while (tokens[pos].item != ")");
+
+    Operators.push_back(gate);
+}
+
+
+// these are for future
 void read_always() {}
 void read_if() {}
 
-void read_module() {
+void read_module()
+{
     Module* module_buffer;
     Variable* var_buffer;
     
@@ -140,6 +217,11 @@ void read_module() {
             read_gate();
         }
 
+        if (tokens[pos].item == "endmodule")
+        {
+            break;
+        }
+
         pos++;
     }
 }
@@ -147,9 +229,9 @@ void read_module() {
 /*
 * Important: for now we assume than verilog syntax is correct
 */
-bool read_file(const char* file_name)
+bool readFile(const char* fileName)
 {
-    tokens = tokenize(file_name);
+    tokens = tokenize(fileName);
 
     for (pos = 0; pos < tokens.size(); pos++)
     {
@@ -161,4 +243,30 @@ bool read_file(const char* file_name)
     }
 
     return true;
+}
+
+bool readConfig(const char* fileName)
+{
+    FILE *p_file = fopen(fileName, "rt");
+    if(!p_file)
+        return false;
+
+    char check[128];
+    int checked;
+    while (!feof(p_file)
+    {
+        fscanf(p_file, "%s = %d", check, &checked);
+        if (!strcmp(check, "UNUSED_VARS"))
+        {
+            checkUnusedVars = checked;
+        }
+        if (!strcmp(check, "BIT_CAPACITY_MISMATCH"))
+        {
+            checkBitCapacityMismathc = checked;
+        }
+    }
+}
+
+void performAnalysis()
+{
 }
