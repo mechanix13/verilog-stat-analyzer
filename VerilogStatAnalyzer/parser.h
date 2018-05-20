@@ -11,14 +11,17 @@
 #include "constant.h"
 #include "module.h"
 
+const char* dumpFile = ".\\result.log";
+
+// enable\disable checks
 bool checkUnusedVars = true;
-bool checkBitCapacityMismathc = false;
+bool checkBitCapacityMismatch = false;
 
 std::vector<token> tokens;
-std::vector<Node*> Operators;
-std::vector<Variable*> Vars;
+std::vector<Node*> Operators; // operator nodes
+std::vector<Variable*> Vars; // variable nodes
 
-unsigned int pos = 0;
+unsigned int pos = 0; // cursor
 
 Variable* find_var(const char* name)
 {
@@ -56,8 +59,10 @@ void read_declaration() {
         var = new Variable();
         var->Name = tokens[pos].item;
         var->Type = 0;
+        var->Capacity = 1;
         Vars.push_back(var);
     }
+    decl->Capacity = 1;
     
     if (var->Type < 0)
         var->Type = 0;
@@ -178,6 +183,7 @@ void read_module()
 
             var_buffer = new Variable();
             var_buffer->Name = tokens[pos].item;
+            var_buffer->Capacity = 1;
             Vars.push_back(var_buffer);
             module_buffer->Ports.push_back(var_buffer);
 
@@ -248,12 +254,12 @@ bool readFile(const char* fileName)
 bool readConfig(const char* fileName)
 {
     FILE *p_file = fopen(fileName, "rt");
-    if(!p_file)
+    if (!p_file)
         return false;
 
     char check[128];
     int checked;
-    while (!feof(p_file)
+    while (!feof(p_file))
     {
         fscanf(p_file, "%s = %d", check, &checked);
         if (!strcmp(check, "UNUSED_VARS"))
@@ -262,11 +268,61 @@ bool readConfig(const char* fileName)
         }
         if (!strcmp(check, "BIT_CAPACITY_MISMATCH"))
         {
-            checkBitCapacityMismathc = checked;
+            checkBitCapacityMismatch = checked;
         }
     }
+
+    fclose(p_file);
 }
 
 void performAnalysis()
 {
+    FILE *p_file = fopen(dumpFile, "w");
+    if (!p_file)
+        return;
+
+    if (checkUnusedVars)
+    {
+        for (int i = 0; i < Vars.size(); i++)
+        {
+            bool foundVar = false;
+            for (int j = 0; j < Operators.size(); j++)
+            {
+                switch (Operators[j]->nodeType)
+                {
+                    case NODE_ASSIGN:
+                        if ((((Assign *)Operators[j])->LHS->Name == Vars[i]->Name)
+                            || ((((Assign *)Operators[j])->RHS->nodeType == NODE_VARIABLE) && (((Variable *)((Assign *)Operators[j])->RHS)->Name == Vars[i]->Name)))
+                        {
+                            foundVar = true;
+                            continue;
+                        }
+                        break;
+                    case NODE_GATE:
+                        if (((Gate *)Operators[j])->OutVar->Name == Vars[i]->Name)
+                        {
+                            foundVar = true;
+                            continue;
+                        }
+                        for (int k = 0; k < ((Gate *)Operators[j])->InVars.size(); k++)
+                        {
+                            if (((Gate *)Operators[j])->InVars[k]->Name == Vars[i]->Name)
+                            {
+                                foundVar = true;
+                                goto stopWalking;
+                            }
+                        }
+                        break;
+                }
+            }
+stopWalking:
+            if (foundVar)
+            {
+                continue;
+            }
+            fprintf(p_file, "VSA001: unused variable - %s\n", Vars[i]->Name.c_str());
+        }
+    }
+
+    fclose(p_file);
 }

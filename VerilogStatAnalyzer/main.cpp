@@ -4,12 +4,13 @@
 #include <string>
 #include <iostream>
 
-const char* file = "D:\\test\\inv.v";
+const char* file = "D:\\test\\buff.v";
 
 int main()
 {
-    //read_file(file);
+    readFile(file);
     readConfig(".\\analyze.conf");
+    performAnalysis();
 
     return 0;
 }

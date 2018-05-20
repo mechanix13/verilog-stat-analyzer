@@ -1,5 +1,16 @@
 #pragma once
 
+enum NodeType
+{
+    NODE_MODULE,
+    NODE_GATE,
+    NODE_ASSIGN,
+    NODE_ALWAYS,
+    NODE_IF,
+    NODE_DECLARATION,
+    NODE_VARIABLE
+};
+
 enum GateType 
 {
     GATE_NOT,
