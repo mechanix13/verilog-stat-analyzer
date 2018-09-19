@@ -15,8 +15,9 @@
 const char* dumpFile = ".\\result.log";
 
 // enable\disable checks
-bool checkUnusedVars = true;
+bool checkUnusedVars = false;
 bool checkBitCapacityMismatch = false;
+bool checkIncompleteCase = false;
 
 std::vector<token> tokens;
 std::vector<Node*> Operators; // operator nodes
@@ -271,6 +272,10 @@ bool readConfig(const char* fileName)
         {
             checkBitCapacityMismatch = checked > 0;
         }
+        if (!strcmp(check, "INCOMPLETE_CASE_STATEMENT"))
+        {
+            checkIncompleteCase = checked > 0;
+        }
     }
 
     fclose(p_file);
@@ -339,6 +344,8 @@ void analyzeBitCapacity(FILE* dump)
         }
     }
 }
+
+void analyzeIncompleteCase() {}
 
 void performAnalysis()
 {
