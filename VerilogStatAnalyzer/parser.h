@@ -1,6 +1,7 @@
 #pragma once
 
 #include <vector>
+#include <cmath>
 
 #include "tokenizer.h"
 #include "always.h"
@@ -75,7 +76,7 @@ void read_declaration() {
         int left_border = atoi(tokens[pos].item.c_str());
         pos += 3;
         int right_border = atoi(tokens[pos].item.c_str());
-        decl->Capacity = left_border > right_border ? left_border : right_border;
+        decl->Capacity = abs(left_border - right_border) + 1;
         var->Capacity = decl->Capacity;
         pos += 2; // skip square brace
     }
