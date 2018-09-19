@@ -320,6 +320,26 @@ stopWalking:
     }
 }
 
+void analyzeBitCapacity(FILE* dump)
+{
+    for (unsigned int i = 0; i < Operators.size(); i++)
+    {
+        if (Operators[i]->nodeType == NODE_ASSIGN)
+        {
+            if (((Assign *)Operators[i])->RHS->nodeType == NODE_VARIABLE)
+            {
+                if (((Assign *)Operators[i])->LHS->Capacity != ((Variable *)((Assign *)Operators[i])->RHS)->Capacity)
+                {
+                    std::string leftName = ((Assign *)Operators[i])->LHS->Name;
+                    std::string rightName = ((Variable *)((Assign *)Operators[i])->RHS)->Name;
+
+                    fprintf(dump, "VSA002: bit capacity mismatch while assigning \"%s\" to \"%s\"", rightName.c_str(), leftName.c_str());
+                }
+            }
+        }
+    }
+}
+
 void performAnalysis()
 {
     FILE *p_file = fopen(dumpFile, "w");
@@ -329,6 +349,11 @@ void performAnalysis()
     if (checkUnusedVars)
     {
         analyzeUnusedVars(p_file);    
+    }
+
+    if (checkBitCapacityMismatch)
+    {
+        analyzeBitCapacity(p_file);
     }
 
     fclose(p_file);
