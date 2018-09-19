@@ -26,7 +26,7 @@ unsigned int pos = 0; // cursor
 
 Variable* find_var(const char* name)
 {
-    for (int i = 0; i < Vars.size(); i++)
+    for (unsigned int i = 0; i < Vars.size(); i++)
     {
         if (Vars[i]->Name == name)
             return Vars[i];
@@ -265,23 +265,24 @@ bool readConfig(const char* fileName)
         fscanf(p_file, "%s = %d", check, &checked);
         if (!strcmp(check, "UNUSED_VARS"))
         {
-            checkUnusedVars = checked;
+            checkUnusedVars = checked > 0;
         }
         if (!strcmp(check, "BIT_CAPACITY_MISMATCH"))
         {
-            checkBitCapacityMismatch = checked;
+            checkBitCapacityMismatch = checked > 0;
         }
     }
 
     fclose(p_file);
+    return true;
 }
 
 void analyzeUnusedVars(FILE* dump)
 {
-    for (int i = 0; i < Vars.size(); i++)
+    for (unsigned int i = 0; i < Vars.size(); i++)
     {
         bool foundVar = false;
-        for (int j = 0; j < Operators.size(); j++)
+        for (unsigned int j = 0; j < Operators.size(); j++)
         {
             switch (Operators[j]->nodeType)
             {
@@ -299,7 +300,7 @@ void analyzeUnusedVars(FILE* dump)
                         foundVar = true;
                         continue;
                     }
-                    for (int k = 0; k < ((Gate *)Operators[j])->InVars.size(); k++)
+                    for (unsigned int k = 0; k < ((Gate *)Operators[j])->InVars.size(); k++)
                     {
                         if (((Gate *)Operators[j])->InVars[k]->Name == Vars[i]->Name)
                         {
