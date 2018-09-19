@@ -276,6 +276,49 @@ bool readConfig(const char* fileName)
     fclose(p_file);
 }
 
+void analyzeUnusedVars(FILE* dump)
+{
+    for (int i = 0; i < Vars.size(); i++)
+    {
+        bool foundVar = false;
+        for (int j = 0; j < Operators.size(); j++)
+        {
+            switch (Operators[j]->nodeType)
+            {
+                case NODE_ASSIGN:
+                    if ((((Assign *)Operators[j])->LHS->Name == Vars[i]->Name)
+                        || ((((Assign *)Operators[j])->RHS->nodeType == NODE_VARIABLE) && (((Variable *)((Assign *)Operators[j])->RHS)->Name == Vars[i]->Name)))
+                    {
+                        foundVar = true;
+                        continue;
+                    }
+                    break;
+                case NODE_GATE:
+                    if (((Gate *)Operators[j])->OutVar->Name == Vars[i]->Name)
+                    {
+                        foundVar = true;
+                        continue;
+                    }
+                    for (int k = 0; k < ((Gate *)Operators[j])->InVars.size(); k++)
+                    {
+                        if (((Gate *)Operators[j])->InVars[k]->Name == Vars[i]->Name)
+                        {
+                            foundVar = true;
+                            goto stopWalking;
+                        }
+                    }
+                    break;
+            }
+        }
+stopWalking:
+        if (foundVar)
+        {
+            continue;
+        }
+        fprintf(dump, "VSA001: unused variable - %s\n", Vars[i]->Name.c_str());
+    }
+}
+
 void performAnalysis()
 {
     FILE *p_file = fopen(dumpFile, "w");
@@ -284,45 +327,7 @@ void performAnalysis()
 
     if (checkUnusedVars)
     {
-        for (int i = 0; i < Vars.size(); i++)
-        {
-            bool foundVar = false;
-            for (int j = 0; j < Operators.size(); j++)
-            {
-                switch (Operators[j]->nodeType)
-                {
-                    case NODE_ASSIGN:
-                        if ((((Assign *)Operators[j])->LHS->Name == Vars[i]->Name)
-                            || ((((Assign *)Operators[j])->RHS->nodeType == NODE_VARIABLE) && (((Variable *)((Assign *)Operators[j])->RHS)->Name == Vars[i]->Name)))
-                        {
-                            foundVar = true;
-                            continue;
-                        }
-                        break;
-                    case NODE_GATE:
-                        if (((Gate *)Operators[j])->OutVar->Name == Vars[i]->Name)
-                        {
-                            foundVar = true;
-                            continue;
-                        }
-                        for (int k = 0; k < ((Gate *)Operators[j])->InVars.size(); k++)
-                        {
-                            if (((Gate *)Operators[j])->InVars[k]->Name == Vars[i]->Name)
-                            {
-                                foundVar = true;
-                                goto stopWalking;
-                            }
-                        }
-                        break;
-                }
-            }
-stopWalking:
-            if (foundVar)
-            {
-                continue;
-            }
-            fprintf(p_file, "VSA001: unused variable - %s\n", Vars[i]->Name.c_str());
-        }
+        analyzeUnusedVars(p_file);    
     }
 
     fclose(p_file);
