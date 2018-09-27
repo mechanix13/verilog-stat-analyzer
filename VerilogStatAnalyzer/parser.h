@@ -158,8 +158,40 @@ void read_gate()
 }
 
 
+void read_always()
+{
+    pos++; // skip "always" keyword
+    pos += 2; // skip "@" and "(" - separated for readability
+    bool complex = false;
+
+    Always* block = new Always();
+
+    if (tokens[pos].item != "*")
+    {
+        while(tokens[pos].item != ")")
+        {
+            block->Events.push_back(find_var(tokens[pos].item.c_str()));
+            pos++;
+        }
+    }
+    pos++; // skips ")"
+
+    // TODO: read operators, events, implement "=" assignment
+    if (tokens[pos].item == "begin")
+        complex = true;
+
+    do
+    {
+
+    } while (complex && (tokens[pos].item != "end"));
+
+    Operators.push_back(block);
+
+    return;
+}
+
 // these are for future
-void read_always() {}
+void read_eq_assign() {}
 void read_if() {}
 
 void read_module()

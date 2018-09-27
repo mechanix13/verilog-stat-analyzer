@@ -22,6 +22,12 @@ enum GateType
     GATE_XNOR
 };
 
+enum AlwaysEvent
+{
+    EVENT_POSEDGE,
+    EVENT_NEGEDGE
+};
+
 // variable type definitions
 const unsigned int VAR_INPUT = 1;
 const unsigned int VAR_OUTPUT = 2;
