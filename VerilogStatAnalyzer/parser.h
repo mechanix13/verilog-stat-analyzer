@@ -157,6 +157,10 @@ void read_gate()
     Operators.push_back(gate);
 }
 
+// these are for future
+void read_eq_assign() {}
+void read_if() {}
+void read_case() {}
 
 void read_always()
 {
@@ -173,26 +177,40 @@ void read_always()
             block->Events.push_back(find_var(tokens[pos].item.c_str()));
             pos++;
         }
+        pos++; // skips ")"
     }
-    pos++; // skips ")"
+    else
+    {
+        pos += 2;
+    }
 
     // TODO: read operators, events, implement "=" assignment
     if (tokens[pos].item == "begin")
+    {
         complex = true;
+        pos++;
+    }
 
     do
     {
-
+        if (tokens[pos].item == "if")
+        {
+            read_if();
+        }
+        if (tokens[pos + 1].item == "=")
+        {
+            read_assign();
+        }
+        if (tokens[pos].item == "case")
+        {
+            read_case();
+        }
     } while (complex && (tokens[pos].item != "end"));
 
     Operators.push_back(block);
 
     return;
 }
-
-// these are for future
-void read_eq_assign() {}
-void read_if() {}
 
 void read_module()
 {
