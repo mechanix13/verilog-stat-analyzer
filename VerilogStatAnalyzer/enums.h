@@ -7,6 +7,7 @@ enum NodeType
     NODE_ASSIGN,
     NODE_ALWAYS,
     NODE_IF,
+    NODE_CASE,
     NODE_DECLARATION,
     NODE_VARIABLE
 };

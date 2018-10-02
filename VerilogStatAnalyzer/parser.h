@@ -158,7 +158,6 @@ void read_gate()
 }
 
 // these are for future
-void read_eq_assign() {}
 void read_if() {}
 void read_case() {}
 
