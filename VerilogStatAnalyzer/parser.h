@@ -6,6 +6,7 @@
 #include "tokenizer.h"
 #include "always.h"
 #include "assign.h"
+#include "case.h"
 #include "declaration.h"
 #include "enums.h"
 #include "gate.h"
@@ -159,7 +160,39 @@ void read_gate()
 
 // these are for future
 void read_if() {}
-void read_case() {}
+
+void read_case()
+{
+    int start = tokens[pos].line;
+    pos += 2; // skip "case" keyword and "(" symbol
+
+    Case* block = new Case();
+    block->StartLine = start;
+    block->Switch = find_var(tokens[pos].item.c_str());
+    pos += 2; // skip ")" symbol
+
+    // TODO: read operations on the right of cases
+    while (tokens[pos].item != "endcase")
+    {
+        if (tokens[pos].item == "default")
+        {
+            block->HasDefault = true;
+            pos++;
+            continue;
+        }
+        if ((tokens[pos + 1].item == ",") || (tokens[pos + 1].item == ":"))
+        {
+            block->CaseCount++;
+        }
+        
+        pos++;
+    }
+    
+    pos++; // skip "endcase" keyword
+    Operators.push_back(block);
+
+    return;
+}
 
 void read_always()
 {
@@ -169,6 +202,7 @@ void read_always()
 
     Always* block = new Always();
 
+    // TODO: read events properly
     if (tokens[pos].item != "*")
     {
         while(tokens[pos].item != ")")
@@ -176,14 +210,13 @@ void read_always()
             block->Events.push_back(find_var(tokens[pos].item.c_str()));
             pos++;
         }
-        pos++; // skips ")"
+        pos++; // skip ")"
     }
     else
     {
         pos += 2;
     }
 
-    // TODO: read operators, events, implement "=" assignment
     if (tokens[pos].item == "begin")
     {
         complex = true;
@@ -331,6 +364,7 @@ bool readConfig(const char* fileName)
     return true;
 }
 
+// TODO: add always and others, refactor for readability
 void analyzeUnusedVars(FILE* dump)
 {
     for (unsigned int i = 0; i < Vars.size(); i++)
@@ -374,6 +408,7 @@ stopWalking:
     }
 }
 
+// TODO: constants on RHS, refactor for readability
 void analyzeBitCapacity(FILE* dump)
 {
     for (unsigned int i = 0; i < Operators.size(); i++)
@@ -394,7 +429,23 @@ void analyzeBitCapacity(FILE* dump)
     }
 }
 
-void analyzeIncompleteCase() {}
+void analyzeIncompleteCase(FILE* dump)
+{
+    Case* buffer;
+    int maxCases = 0;
+    for (unsigned int i = 0; i < Operators.size(); i++)
+    {
+        if (Operators[i]->nodeType == NODE_CASE)
+        {
+            buffer = (Case *)Operators[i];
+            maxCases = pow(2.0, buffer->Switch->Capacity);
+            if ((buffer->CaseCount < maxCases) && !buffer->HasDefault)
+            {
+                fprintf(dump, "VSA003: incomplete case statement at line %d", buffer->StartLine);
+            }
+        }
+    }
+}
 
 void performAnalysis()
 {
@@ -410,6 +461,11 @@ void performAnalysis()
     if (checkBitCapacityMismatch)
     {
         analyzeBitCapacity(p_file);
+    }
+
+    if (checkIncompleteCase)
+    {
+        analyzeIncompleteCase(p_file);
     }
 
     fclose(p_file);

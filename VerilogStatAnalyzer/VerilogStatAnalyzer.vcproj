@@ -180,6 +180,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\case.h"
+				>
+			</File>
+			<File
 				RelativePath=".\constant.h"
 				>
 			</File>

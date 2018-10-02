@@ -9,8 +9,13 @@ public:
     Case()
     {
         this->nodeType = NODE_CASE;
+        this->CaseCount = 0;
+        this->HasDefault = false;
+        this->StartLine = 0;
     }
 
     Variable* Switch;
-    Node* RHS;
+    int CaseCount;
+    bool HasDefault;
+    unsigned int StartLine;
 };
