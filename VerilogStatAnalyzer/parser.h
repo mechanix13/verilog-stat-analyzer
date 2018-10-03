@@ -383,12 +383,16 @@ void analyzeUnusedVars(FILE* dump)
 
         bool foundVar = false;
         Assign* assignBuffer;
+        Always* alwaysBuffer;
         Gate* gateBuffer;
 
         for (unsigned int j = 0; j < Operators.size(); j++)
         {
             switch (Operators[j]->nodeType)
             {
+                /*case NODE_ALWAYS:
+                    alwaysBuffer = (Always *)Operators[j];
+                    break;*/
                 case NODE_ASSIGN:
                     assignBuffer = (Assign *)Operators[j];
                     if ((assignBuffer->LHS->Name == Vars[i]->Name)
@@ -410,13 +414,13 @@ void analyzeUnusedVars(FILE* dump)
                         if (gateBuffer->InVars[k]->Name == Vars[i]->Name)
                         {
                             foundVar = true;
-                            goto stopWalking;
+                            break;
                         }
                     }
                     break;
             }
         }
-stopWalking:
+
         if (foundVar)
         {
             continue;
