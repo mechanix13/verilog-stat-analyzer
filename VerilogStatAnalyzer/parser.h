@@ -371,7 +371,7 @@ bool readConfig(const char* fileName)
     return true;
 }
 
-// TODO: add always and others, refactor for readability
+// TODO: add always and case, refactor for readability
 void analyzeUnusedVars(FILE* dump)
 {
     for (unsigned int i = 0; i < Vars.size(); i++)
@@ -382,27 +382,32 @@ void analyzeUnusedVars(FILE* dump)
         }
 
         bool foundVar = false;
+        Assign* assignBuffer;
+        Gate* gateBuffer;
+
         for (unsigned int j = 0; j < Operators.size(); j++)
         {
             switch (Operators[j]->nodeType)
             {
                 case NODE_ASSIGN:
-                    if ((((Assign *)Operators[j])->LHS->Name == Vars[i]->Name)
-                        || ((((Assign *)Operators[j])->RHS->nodeType == NODE_VARIABLE) && (((Variable *)((Assign *)Operators[j])->RHS)->Name == Vars[i]->Name)))
+                    assignBuffer = (Assign *)Operators[j];
+                    if ((assignBuffer->LHS->Name == Vars[i]->Name)
+                        || ((assignBuffer->RHS->nodeType == NODE_VARIABLE) && (((Variable *)assignBuffer->RHS)->Name == Vars[i]->Name)))
                     {
                         foundVar = true;
                         continue;
                     }
                     break;
                 case NODE_GATE:
-                    if (((Gate *)Operators[j])->OutVar->Name == Vars[i]->Name)
+                    gateBuffer = (Gate *)Operators[j];
+                    if (gateBuffer->OutVar->Name == Vars[i]->Name)
                     {
                         foundVar = true;
                         continue;
                     }
-                    for (unsigned int k = 0; k < ((Gate *)Operators[j])->InVars.size(); k++)
+                    for (unsigned int k = 0; k < gateBuffer->InVars.size(); k++)
                     {
-                        if (((Gate *)Operators[j])->InVars[k]->Name == Vars[i]->Name)
+                        if (gateBuffer->InVars[k]->Name == Vars[i]->Name)
                         {
                             foundVar = true;
                             goto stopWalking;
