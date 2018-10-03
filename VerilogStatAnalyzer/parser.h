@@ -420,21 +420,45 @@ stopWalking:
     }
 }
 
-// TODO: constants on RHS, refactor for readability
 void analyzeBitCapacity(FILE* dump)
 {
+    Assign* assignBuffer;
+    Variable* varBuffer;
+    Constant* constBuffer;
+
     for (unsigned int i = 0; i < Operators.size(); i++)
     {
         if (Operators[i]->nodeType == NODE_ASSIGN)
         {
-            if (((Assign *)Operators[i])->RHS->nodeType == NODE_VARIABLE)
-            {
-                if (((Assign *)Operators[i])->LHS->Capacity != ((Variable *)((Assign *)Operators[i])->RHS)->Capacity)
-                {
-                    std::string leftName = ((Assign *)Operators[i])->LHS->Name;
-                    std::string rightName = ((Variable *)((Assign *)Operators[i])->RHS)->Name;
+            assignBuffer = (Assign *)Operators[i];
 
-                    fprintf(dump, "VSA002: bit capacity mismatch while assigning \"%s\" to \"%s\"", rightName.c_str(), leftName.c_str());
+            if (assignBuffer->RHS->nodeType == NODE_VARIABLE)
+            {
+                varBuffer = (Variable *)assignBuffer->RHS;
+                if (assignBuffer->LHS->Capacity != varBuffer->Capacity)
+                {
+                    std::string leftName = assignBuffer->LHS->Name;
+                    std::string rightName = varBuffer->Name;
+
+                    fprintf(
+                        dump,
+                        "VSA002: bit capacity mismatch while assigning \"%s\" to \"%s\"\n",
+                        rightName.c_str(),
+                        leftName.c_str()
+                    );
+                }
+            }
+            if (assignBuffer->RHS->nodeType == NODE_CONSTANT)
+            {
+                constBuffer = (Constant *)assignBuffer->RHS;
+                if (constBuffer->Value != pow(2.0, assignBuffer->LHS->Capacity))
+                {
+                    fprintf(
+                        dump,
+                        "VSA002: bit capacity mismatch while assigning %d to \"%s\"\n",
+                        constBuffer->Value,
+                        assignBuffer->LHS->Name.c_str()
+                    );
                 }
             }
         }
