@@ -180,9 +180,16 @@ void read_case()
             pos++;
             continue;
         }
-        if ((tokens[pos + 1].item == ",") || (tokens[pos + 1].item == ":"))
+        if (tokens[pos + 1].item == ",")
         {
             block->CaseCount++;
+        }
+        if (tokens[pos + 1].item == ":")
+        {
+            block->CaseCount++;
+            pos += 2;
+            read_assign();
+            continue;
         }
         
         pos++;
@@ -369,6 +376,11 @@ void analyzeUnusedVars(FILE* dump)
 {
     for (unsigned int i = 0; i < Vars.size(); i++)
     {
+        if (Vars[i]->nodeType == NODE_CONSTANT)
+        {
+            continue;
+        }
+
         bool foundVar = false;
         for (unsigned int j = 0; j < Operators.size(); j++)
         {

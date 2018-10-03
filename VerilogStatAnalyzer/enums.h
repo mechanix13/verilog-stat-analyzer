@@ -9,7 +9,8 @@ enum NodeType
     NODE_IF,
     NODE_CASE,
     NODE_DECLARATION,
-    NODE_VARIABLE
+    NODE_VARIABLE,
+    NODE_CONSTANT,
 };
 
 enum GateType 
