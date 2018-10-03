@@ -171,7 +171,6 @@ void read_case()
     block->Switch = find_var(tokens[pos].item.c_str());
     pos += 2; // skip ")" symbol
 
-    // TODO: read operations on the right of cases
     while (tokens[pos].item != "endcase")
     {
         if (tokens[pos].item == "default")
@@ -371,7 +370,6 @@ bool readConfig(const char* fileName)
     return true;
 }
 
-// TODO: add always and case, refactor for readability
 void analyzeUnusedVars(FILE* dump)
 {
     for (unsigned int i = 0; i < Vars.size(); i++)
@@ -384,15 +382,32 @@ void analyzeUnusedVars(FILE* dump)
         bool foundVar = false;
         Assign* assignBuffer;
         Always* alwaysBuffer;
+        Case* caseBuffer;
         Gate* gateBuffer;
 
         for (unsigned int j = 0; j < Operators.size(); j++)
         {
             switch (Operators[j]->nodeType)
             {
-                /*case NODE_ALWAYS:
+                case NODE_ALWAYS:
                     alwaysBuffer = (Always *)Operators[j];
-                    break;*/
+                    for (unsigned int k = 0; k < alwaysBuffer->Events.size(); k++)
+                    {
+                        if (alwaysBuffer->Events[k]->Name == Vars[i]->Name)
+                        {
+                            foundVar = true;
+                            break;
+                        }
+                    }
+                    break;
+                case NODE_CASE:
+                    caseBuffer = (Case *)Operators[j];
+                    if (caseBuffer->Switch->Name == Vars[i]->Name)
+                    {
+                        foundVar = true;
+                        continue;
+                    }
+                    break;
                 case NODE_ASSIGN:
                     assignBuffer = (Assign *)Operators[j];
                     if ((assignBuffer->LHS->Name == Vars[i]->Name)
